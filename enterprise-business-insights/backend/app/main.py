@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.dashboard import router as dashboard_router
+from app.routers.orders import router as orders_router
+from app.routers.customers import router as customers_router
+from app.routers.analytics import router as analytics_router
+from app.routers.activities import router as activities_router
+
+
 
 app = FastAPI(
     title="Enterprise Business Insights API",
@@ -17,7 +23,10 @@ app.add_middleware(
 )
 
 app.include_router(dashboard_router)
-
+app.include_router(orders_router)
+app.include_router(customers_router)
+app.include_router(analytics_router)
+app.include_router(activities_router)
 
 @app.get("/")
 def root():

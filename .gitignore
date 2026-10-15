@@ -16,3 +16,22 @@ node_modules/
 
 # IDE
 .vscode/
+
+
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.db
+
+# Alembic / Python tooling cache
+.pytest_cache/
+.mypy_cache/
