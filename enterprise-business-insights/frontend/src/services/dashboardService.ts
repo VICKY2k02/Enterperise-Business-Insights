@@ -1,6 +1,6 @@
 import { DashboardData } from "../types/dashboard";
 
-const API_BASE_URL = "http://192.168.1.3:8000";
+const API_BASE_URL = "http://192.168.1.4:8000";
 
 export async function getDashboardData(): Promise<DashboardData> {
   const response = await fetch(
