@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import distinct, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
+from app.core.security import get_current_user
+from app.models.user import User
 from app.db.session import get_db
 from app.models import Category, Customer, Order, OrderItem, Product
 from app.schemas.analytics import (
@@ -305,6 +306,7 @@ def get_analytics_overview(
         description="Include comparison with the immediately preceding equal-length period",
     ),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> AnalyticsOverviewResponse:
 
     if start_date > end_date:
@@ -396,6 +398,7 @@ def get_revenue_trend_endpoint(
     start_date: date = Query(...),
     end_date: date = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> RevenueTrendResponse:
 
     if start_date > end_date:

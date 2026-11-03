@@ -12,6 +12,8 @@ from app.models import (
     Order,
     OrderItem,
     BusinessActivity,
+    User,
+    UserRole,
 )
 
 config = context.config

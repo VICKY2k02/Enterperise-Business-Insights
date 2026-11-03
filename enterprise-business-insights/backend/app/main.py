@@ -5,8 +5,8 @@ from app.routers.orders import router as orders_router
 from app.routers.customers import router as customers_router
 from app.routers.analytics import router as analytics_router
 from app.routers.activities import router as activities_router
-
-
+from app.routers.auth import router as auth_router
+from app.routers.users import router as users_router
 
 app = FastAPI(
     title="Enterprise Business Insights API",
@@ -27,6 +27,8 @@ app.include_router(orders_router)
 app.include_router(customers_router)
 app.include_router(analytics_router)
 app.include_router(activities_router)
+app.include_router(auth_router)
+app.include_router(users_router)
 
 @app.get("/")
 def root():

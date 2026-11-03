@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
+from app.core.security import get_current_user
+from app.models.user import User
 from app.db.session import get_db
 from app.models import BusinessActivity
 from app.schemas.activity import ActivityListItem, PaginatedActivities
@@ -22,6 +23,7 @@ def get_activities(
     search: str | None = Query(default=None, min_length=1, max_length=100),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaginatedActivities:
 

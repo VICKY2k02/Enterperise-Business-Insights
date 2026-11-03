@@ -1,6 +1,10 @@
+
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useAuth } from "../context/AuthContext";
+import LoginScreen from "../screens/LoginScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import AnalyticsScreen from "../screens/AnalyticsScreen";
 import AlertsScreen from "../screens/AlertsScreen";
@@ -16,25 +20,35 @@ export type RootTabParamList = {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export default function BottomTabNavigator() {
+  const { isLoading, isAuthenticated } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563EB" />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-
         tabBarActiveTintColor: "#2563EB",
         tabBarInactiveTintColor: "#777777",
-
         tabBarStyle: {
           height: 60,
           paddingBottom: 8,
           paddingTop: 5,
         },
-
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
         },
-
         tabBarIcon: ({ focused, color, size }) => {
           let iconName:
             | "home"
@@ -47,52 +61,34 @@ export default function BottomTabNavigator() {
             | "person-outline";
 
           if (route.name === "Dashboard") {
-            iconName = focused
-              ? "home"
-              : "home-outline";
+            iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Analytics") {
-            iconName = focused
-              ? "bar-chart"
-              : "bar-chart-outline";
+            iconName = focused ? "bar-chart" : "bar-chart-outline";
           } else if (route.name === "Alerts") {
             iconName = focused
               ? "notifications"
               : "notifications-outline";
           } else {
-            iconName = focused
-              ? "person"
-              : "person-outline";
+            iconName = focused ? "person" : "person-outline";
           }
 
-          return (
-            <Ionicons
-              name={iconName}
-              size={size}
-              color={color}
-            />
-          );
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-      />
-
-      <Tab.Screen
-        name="Analytics"
-        component={AnalyticsScreen}
-      />
-
-      <Tab.Screen
-        name="Alerts"
-        component={AlertsScreen}
-      />
-
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-      />
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Analytics" component={AnalyticsScreen} />
+      <Tab.Screen name="Alerts" component={AlertsScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+});
