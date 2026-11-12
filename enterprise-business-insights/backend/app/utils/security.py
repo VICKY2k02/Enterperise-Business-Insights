@@ -6,7 +6,6 @@ from pwdlib import PasswordHash
 
 from app.core.config import settings
 
-# Use Argon2 when available through pwdlib's recommended configuration.
 password_hasher = PasswordHash.recommended()
 
 

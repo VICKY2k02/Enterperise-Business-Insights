@@ -1,15 +1,22 @@
+import logging
 
 from datetime import date, datetime, time, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.security import require_roles
 from app.db.session import get_db
 from app.models import Customer, Order, BusinessActivity
+from app.models.user import User, UserRole
 from app.schemas.customer import CustomerListItem, PaginatedCustomers, CustomerCreate
 
+
+from app.services.notification_service import create_notification_and_send
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/customers", tags=["Customers"])
 
@@ -105,9 +112,12 @@ def get_customers(
 
 
 @router.post("", response_model=CustomerListItem, status_code=status.HTTP_201_CREATED)
-def create_customer(
+async def create_customer(
     customer_data: CustomerCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles(UserRole.ADMIN, UserRole.ANALYST)
+    ),
 ) -> CustomerListItem:
     try:
         existing_customer = db.scalar(
@@ -144,15 +154,6 @@ def create_customer(
         db.commit()
         db.refresh(customer)
 
-        return CustomerListItem(
-            id=customer.id,
-            name=customer.name,
-            email=customer.email,
-            registration_date=customer.registration_date,
-            status=customer.status,
-            order_count=0,
-        )
-
     except HTTPException:
         db.rollback()
         raise
@@ -168,3 +169,47 @@ def create_customer(
             status_code=503,
             detail="Customer registration failed. Please try again.",
         ) from None
+
+    #Notification generation for new customer registration
+
+    try:
+        recipients = (
+            db.query(User)
+            .filter(
+                User.role.in_([
+                    UserRole.ADMIN,
+                    UserRole.ANALYST,
+                ]),
+                User.is_enabled.is_(True),
+            )
+            .all()
+        )
+
+        for recipient in recipients:
+            await create_notification_and_send(
+                db,
+                recipient_user_id=recipient.id,
+                title="New Customer Registered",
+                message=f"A new customer, {customer.name}, has registered.",
+                notification_type="Customer",
+                priority="Medium",
+                event_key=f"customer_registered:{customer.id}",
+                related_entity_id=customer.id,
+                related_entity_type="customer",
+            )
+
+    except Exception:
+        db.rollback()
+        logger.exception(
+            "Customer notification generation failed for customer ID %s",
+            customer.id,
+        )
+
+    return CustomerListItem(
+        id=customer.id,
+        name=customer.name,
+        email=customer.email,
+        registration_date=customer.registration_date,
+        status=customer.status,
+        order_count=0,
+    )

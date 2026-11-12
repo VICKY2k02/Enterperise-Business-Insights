@@ -14,6 +14,7 @@ from app.models import (
     BusinessActivity,
     User,
     UserRole,
+    Notification,
 )
 
 config = context.config

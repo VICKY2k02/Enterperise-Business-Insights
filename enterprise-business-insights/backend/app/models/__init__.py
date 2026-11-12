@@ -5,6 +5,7 @@ from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.business_activity import BusinessActivity
 from app.models.user import User, UserRole
+from app.models.notification import Notification
 
 __all__ = [
     "Category",
@@ -14,5 +15,6 @@ __all__ = [
     "OrderItem",
     "BusinessActivity",
     "User",
-    "UserRole"
+    "UserRole",
+    "Notification",
 ]

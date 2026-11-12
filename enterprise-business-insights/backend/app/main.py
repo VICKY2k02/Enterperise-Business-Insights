@@ -7,6 +7,10 @@ from app.routers.analytics import router as analytics_router
 from app.routers.activities import router as activities_router
 from app.routers.auth import router as auth_router
 from app.routers.users import router as users_router
+from app.routers.notifications import router as notifications_router
+from app.routers.notification_ws import router as notification_ws_router
+from app.routers.business_alerts import router as business_alerts_router
+
 
 app = FastAPI(
     title="Enterprise Business Insights API",
@@ -29,6 +33,10 @@ app.include_router(analytics_router)
 app.include_router(activities_router)
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(notifications_router)
+app.include_router(notification_ws_router)
+app.include_router(business_alerts_router)
+
 
 @app.get("/")
 def root():

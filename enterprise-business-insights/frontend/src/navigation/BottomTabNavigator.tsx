@@ -1,4 +1,3 @@
-
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +19,11 @@ export type RootTabParamList = {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export default function BottomTabNavigator() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const {
+    isLoading,
+    isAuthenticated,
+    unreadCount,
+  } = useAuth();
 
   if (isLoading) {
     return (
@@ -49,6 +52,18 @@ export default function BottomTabNavigator() {
           fontSize: 12,
           fontWeight: "600",
         },
+        tabBarBadge:
+          route.name === "Alerts" && unreadCount > 0
+            ? unreadCount > 99
+              ? "99+"
+              : unreadCount
+            : undefined,
+        tabBarBadgeStyle: {
+          backgroundColor: "#DC2626",
+          color: "#FFFFFF",
+          fontSize: 10,
+          fontWeight: "700",
+        },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName:
             | "home"
@@ -63,7 +78,9 @@ export default function BottomTabNavigator() {
           if (route.name === "Dashboard") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Analytics") {
-            iconName = focused ? "bar-chart" : "bar-chart-outline";
+            iconName = focused
+              ? "bar-chart"
+              : "bar-chart-outline";
           } else if (route.name === "Alerts") {
             iconName = focused
               ? "notifications"
@@ -72,7 +89,13 @@ export default function BottomTabNavigator() {
             iconName = focused ? "person" : "person-outline";
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return (
+            <Ionicons
+              name={iconName}
+              size={size}
+              color={color}
+            />
+          );
         },
       })}
     >

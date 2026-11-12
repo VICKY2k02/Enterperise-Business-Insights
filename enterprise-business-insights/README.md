@@ -143,3 +143,10 @@ python -m alembic check
 - Dashboard data is retrieved from the backend API.
 - PostgreSQL stores data in its server-managed data directory, not as a database file inside this project.
 - Keep credentials and environment-specific settings out of version control.
+
+
+## 11.
+{
+  "email": "admin@gmail.com",
+  "password": "@Vikas"
+}

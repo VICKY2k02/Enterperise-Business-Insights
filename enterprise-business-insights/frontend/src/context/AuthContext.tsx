@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
 import * as SecureStore from "expo-secure-store";
 
 import {
@@ -15,12 +16,26 @@ import {
   type AuthUser,
 } from "../services/authService";
 
+import {
+  getUnreadCount,
+  type Notification,
+} from "../services/notificationService";
+
+import {
+  startNotificationSocket,
+  stopNotificationSocket,
+} from "../services/notificationSocket";
+
 const TOKEN_KEY = "enterprise_business_insights_access_token";
 
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  unreadCount: number;
+  latestNotification: Notification | null;
+  isNotificationConnected: boolean;
+  refreshUnreadCount: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -34,8 +49,31 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [latestNotification, setLatestNotification] =
+    useState<Notification | null>(null);
+
+  const [isNotificationConnected, setIsNotificationConnected] =
+    useState(false);
+
+  const refreshUnreadCount = useCallback(async () => {
+    try {
+      const result = await getUnreadCount();
+      setUnreadCount(result.unread_count);
+    } catch (error) {
+      console.error("Unable to refresh unread count:", error);
+    }
+  }, []);
 
   const logout = useCallback(async () => {
+
+    // Stop real-time notifications immediately.
+    stopNotificationSocket();
+
+    setIsNotificationConnected(false);
+    setUnreadCount(0);
+    setLatestNotification(null);
+
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     setUser(null);
   }, []);
@@ -87,10 +125,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
+  // Start and stop the WebSocket based on authentication.
+  useEffect(() => {
+    if (!user) {
+      stopNotificationSocket();
+      setIsNotificationConnected(false);
+      setUnreadCount(0);
+      setLatestNotification(null);
+      return;
+    }
+
+    let isActive = true;
+
+    // Load the existing unread notification count.
+    void refreshUnreadCount();
+
+    // Connect to the authenticated notification WebSocket.
+    startNotificationSocket(
+      (notification) => {
+        if (!isActive) {
+          return;
+        }
+
+        setLatestNotification(notification);
+
+        setUnreadCount((currentCount) =>
+          currentCount + (notification.is_read ? 0 : 1),
+        );
+      },
+      (connected) => {
+        if (isActive) {
+          setIsNotificationConnected(connected);
+        }
+      },
+    );
+
+    return () => {
+      isActive = false;
+      stopNotificationSocket();
+    };
+  }, [user, refreshUnreadCount]);
+
   const value: AuthContextValue = {
     user,
     isLoading,
     isAuthenticated: user !== null,
+    unreadCount,
+    latestNotification,
+    isNotificationConnected,
+    refreshUnreadCount,
     login,
     logout,
   };

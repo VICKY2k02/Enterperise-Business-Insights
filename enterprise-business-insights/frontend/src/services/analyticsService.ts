@@ -2,7 +2,7 @@
 import * as SecureStore from "expo-secure-store";
 import type { AnalyticsOverview } from "../types/analytics";
 
-const API_BASE_URL = "http://192.168.1.15:8000";
+const API_BASE_URL = "http://192.168.1.7:8000";
 const TOKEN_KEY = "enterprise_business_insights_access_token";
 
 export interface AnalyticsQuery {
